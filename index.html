@@ -134,6 +134,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pin-error{color:#c0392b;font-size:.85rem;font-weight:600;min-height:1.2em;margin-top:8px}
 .pin-actions{display:flex;gap:8px;margin-top:14px}
 .pin-actions .btn{flex:1;padding:11px 14px}
+.lang-toggle{position:absolute;top:18px;right:62px;display:flex;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:18px;overflow:hidden}
+.lang-toggle button{background:none;border:none;color:#fff;padding:5px 10px;font-size:.78rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;letter-spacing:.5px;opacity:.7}
+.lang-toggle button.on{background:rgba(255,255,255,.30);opacity:1}
+
 @media(max-width:600px){
   .setup-tab{font-size:.82rem;min-width:90px;padding:12px 8px}
   .setup-card{padding:12px}
@@ -146,55 +150,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <body>
 
 <div class="header">
-  <h1>Daily Payroll - Footage Calculator</h1>
-  <div class="subtitle">2026 Season</div>
+  <h1 data-i18n="app_title">Daily Payroll - Footage Calculator</h1>
+  <div class="subtitle" data-i18n="app_subtitle">2026 Season</div>
+  <div class="lang-toggle" role="group" aria-label="Language"><button id="langEnBtn" class="on" type="button">EN</button><button id="langEsBtn" type="button">ES</button></div>
   <button class="gear-btn" id="openSetupBtn" title="Setup / Import Data" aria-label="Setup">&#9881;</button>
 </div>
 
 <div id="restoreBanner" class="restore-banner" style="display:none">
-  <span>You have unsaved work from your last session. Restore it?</span>
+  <span data-i18n="restore_msg">You have unsaved work from your last session. Restore it?</span>
   <div style="display:flex;gap:8px">
-    <button class="restore-yes" onclick="restoreSavedData()">Yes, Restore</button>
-    <button class="restore-no" onclick="dismissRestore()">No, Start Fresh</button>
+    <button class="restore-yes" data-i18n="restore_yes" onclick="restoreSavedData()">Yes, Restore</button>
+    <button class="restore-no" data-i18n="restore_no" onclick="dismissRestore()">No, Start Fresh</button>
   </div>
 </div>
 <div class="save-indicator">
   <div class="save-dot unsaved" id="saveDot"></div>
-  <span id="saveStatus">Not saved yet</span>
+  <span id="saveStatus" data-i18n="save_not_yet">Not saved yet</span>
 </div>
 <div class="toolbar">
-  <label>Farm:</label>
+  <label data-i18n="label_farm">Farm:</label>
   <select id="farmSelect" style="font-weight:600;min-width:100px"><option value="Farm 2">Farm 2</option><option value="Farm 7">Farm 7</option><option value="SC Farm">SC Farm</option><option value="VA Farm">VA Farm</option></select>
-  <label style="margin-left:12px">Date:</label>
+  <label style="margin-left:12px" data-i18n="label_date">Date:</label>
   <input type="date" id="payrollDate" value="">
-  <label style="margin-left:12px">Supervisor:</label>
-  <input type="text" id="supervisorName" placeholder="Your name" style="width:150px">
+  <label style="margin-left:12px" data-i18n="label_supervisor">Supervisor:</label>
+  <input type="text" id="supervisorName" placeholder="Your name" data-i18n-placeholder="ph_your_name" style="width:150px">
 </div>
 
 <div class="container" id="workersContainer"></div>
 <div class="container">
-  <button class="add-worker-btn" id="addWorkerBtn">+ Add Worker</button>
+  <button class="add-worker-btn" id="addWorkerBtn" data-i18n="btn_add_worker">+ Add Worker</button>
 </div>
 
 <div class="bottom-bar">
-  <div class="grand-total">Grand Total: <span id="grandTotal">0.00</span> units</div>
+  <div class="grand-total"><span data-i18n="grand_total">Grand Total:</span> <span id="grandTotal">0.00</span> <span data-i18n="units_word">units</span></div>
   <div class="action-btns">
-    <button class="btn btn-secondary" id="clearBtn">Clear</button>
-    <button class="btn btn-secondary" id="copyBtn">Copy Text</button>
-    <button class="btn btn-primary" id="shareBtn">Share / Send</button>
+    <button class="btn btn-secondary" id="clearBtn" data-i18n="btn_clear">Clear</button>
+    <button class="btn btn-secondary" id="copyBtn" data-i18n="btn_copy">Copy Text</button>
+    <button class="btn btn-primary" id="shareBtn" data-i18n="btn_share">Share / Send</button>
   </div>
 </div>
 
 <!-- ============ PIN GATE ============ -->
 <div class="pin-overlay" id="pinOverlay" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
   <div class="pin-card">
-    <h3 id="pinTitle">Setup PIN</h3>
-    <p class="help">Setup access is locked.<br>Enter the supervisor PIN to continue.</p>
+    <h3 id="pinTitle" data-i18n="pin_title">Setup PIN</h3>
+    <p class="help" data-i18n-html="pin_help">Setup access is locked.<br>Enter the supervisor PIN to continue.</p>
     <input type="password" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
     <div class="pin-error" id="pinError"></div>
     <div class="pin-actions">
-      <button class="btn btn-secondary" id="pinCancelBtn">Cancel</button>
-      <button class="btn btn-primary" id="pinSubmitBtn">Unlock</button>
+      <button class="btn btn-secondary" id="pinCancelBtn" data-i18n="pin_cancel">Cancel</button>
+      <button class="btn btn-primary" id="pinSubmitBtn" data-i18n="pin_unlock">Unlock</button>
     </div>
   </div>
 </div>
@@ -202,37 +207,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- ============ SETUP OVERLAY ============ -->
 <div class="setup-overlay" id="setupOverlay" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
   <div class="setup-header">
-    <h2 id="setupTitle">Setup &amp; Data Import</h2>
+    <h2 id="setupTitle" data-i18n="setup_title">Setup &amp; Data Import</h2>
     <button class="setup-close" id="closeSetupBtn" aria-label="Close setup">&times;</button>
   </div>
   <div class="setup-tabs" role="tablist">
-    <button class="setup-tab active" data-tab="employees" role="tab">Employees</button>
-    <button class="setup-tab" data-tab="fields" role="tab">Fields &amp; Footage</button>
-    <button class="setup-tab" data-tab="backup" role="tab">Backup / Reset</button>
+    <button class="setup-tab active" data-tab="employees" role="tab" data-i18n="tab_employees">Employees</button>
+    <button class="setup-tab" data-tab="fields" role="tab" data-i18n="tab_fields">Fields &amp; Footage</button>
+    <button class="setup-tab" data-tab="backup" role="tab" data-i18n="tab_backup">Backup / Reset</button>
   </div>
   <div class="setup-body">
 
     <!-- === EMPLOYEES PANEL === -->
     <div class="setup-panel active" id="panel-employees">
       <div class="summary-grid">
-        <div class="summary-card"><div class="num" id="empCountNow">0</div><div class="lbl">Employees loaded</div></div>
-        <div class="summary-card"><div class="num" id="empCountDefault">0</div><div class="lbl">Originals</div></div>
+        <div class="summary-card"><div class="num" id="empCountNow">0</div><div class="lbl" data-i18n="summary_emp_loaded">Employees loaded</div></div>
+        <div class="summary-card"><div class="num" id="empCountDefault">0</div><div class="lbl" data-i18n="summary_originals">Originals</div></div>
       </div>
       <div class="setup-card">
-        <h3>Import employees</h3>
-        <p class="help">
+        <h3 data-i18n="section_import_emp">Import employees</h3>
+        <p class="help" data-i18n-html="emp_import_help">
           Paste from Excel/Google Sheets, or upload a <b>.xlsx</b>, <b>.csv</b>, or <b>.pdf</b> file.<br>
           Expected columns (in order): <code>ID</code> &nbsp; <code>Name</code> &nbsp; <code>Petition</code>. A header row is OK &mdash; we'll skip it.
         </p>
-        <textarea id="empPasteBox" placeholder="H25700&#9;LOPEZ MARTINEZ, JUAN&#9;FF26&#10;H25701&#9;PEREZ GARCIA, MARIA&#9;FL26"></textarea>
+        <textarea id="empPasteBox" data-i18n-placeholder="ph_emp_paste" placeholder="H25700&#9;LOPEZ MARTINEZ, JUAN&#9;FF26&#10;H25701&#9;PEREZ GARCIA, MARIA&#9;FL26"></textarea>
         <div class="setup-row">
           <label class="file-pick">
-            &#128206; Upload file
+            <span data-i18n="btn_upload">&#128206; Upload file</span>
             <input type="file" id="empFileInput" accept=".csv,.tsv,.xlsx,.xls,.pdf,.txt">
           </label>
           <div class="mode-toggle" data-target="empMode">
-            <button class="on" data-val="replace">Replace all</button>
-            <button data-val="append">Append</button>
+            <button class="on" data-val="replace" data-i18n="mode_replace">Replace all</button>
+            <button data-val="append" data-i18n="mode_append">Append</button>
           </div>
         </div>
         <div class="setup-status" id="empStatus" style="display:none"></div>
@@ -240,8 +245,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <table class="preview-tbl" id="empPreviewTbl"></table>
         </div>
         <div class="setup-actions">
-          <button class="btn btn-secondary" id="empClearBtn">Clear</button>
-          <button class="btn btn-primary" id="empSaveBtn" disabled>Save employees</button>
+          <button class="btn btn-secondary" id="empClearBtn" data-i18n="btn_clear_paste">Clear</button>
+          <button class="btn btn-primary" id="empSaveBtn" disabled data-i18n="btn_save_emp">Save employees</button>
         </div>
       </div>
     </div>
@@ -249,26 +254,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- === FIELDS PANEL === -->
     <div class="setup-panel" id="panel-fields">
       <div class="summary-grid">
-        <div class="summary-card"><div class="num" id="farmCountNow">0</div><div class="lbl">Farms</div></div>
-        <div class="summary-card"><div class="num" id="fieldCountNow">0</div><div class="lbl">Fields</div></div>
-        <div class="summary-card"><div class="num" id="blockCountNow">0</div><div class="lbl">Blocks</div></div>
+        <div class="summary-card"><div class="num" id="farmCountNow">0</div><div class="lbl" data-i18n="summary_farms">Farms</div></div>
+        <div class="summary-card"><div class="num" id="fieldCountNow">0</div><div class="lbl" data-i18n="summary_fields">Fields</div></div>
+        <div class="summary-card"><div class="num" id="blockCountNow">0</div><div class="lbl" data-i18n="summary_blocks">Blocks</div></div>
       </div>
       <div class="setup-card">
-        <h3>Import fields &amp; footage</h3>
-        <p class="help">
+        <h3 data-i18n="section_import_fld">Import fields &amp; footage</h3>
+        <p class="help" data-i18n-html="fld_import_help">
           Paste from a spreadsheet or upload a <b>.xlsx</b>, <b>.csv</b>, or <b>.pdf</b> file.<br>
           Expected columns (in order): <code>Farm</code> <code>Area</code> <code>Field</code> <code>Block</code> <code>Footage</code>.<br>
           <b>Area</b> is optional &mdash; leave blank for farms without areas. <b>Footage</b> is feet per row.
         </p>
-        <textarea id="fldPasteBox" placeholder="Farm 2&#9;02&#9;02A&#9;1&#9;320&#10;Farm 2&#9;02&#9;02A&#9;2&#9;325&#10;Farm 2&#9;02&#9;02B&#9;1&#9;310"></textarea>
+        <textarea id="fldPasteBox" data-i18n-placeholder="ph_fld_paste" placeholder="Farm 2&#9;02&#9;02A&#9;1&#9;320&#10;Farm 2&#9;02&#9;02A&#9;2&#9;325&#10;Farm 2&#9;02&#9;02B&#9;1&#9;310"></textarea>
         <div class="setup-row">
           <label class="file-pick">
-            &#128206; Upload file
+            <span data-i18n="btn_upload">&#128206; Upload file</span>
             <input type="file" id="fldFileInput" accept=".csv,.tsv,.xlsx,.xls,.pdf,.txt">
           </label>
           <div class="mode-toggle" data-target="fldMode">
-            <button class="on" data-val="replace">Replace all</button>
-            <button data-val="merge">Merge / Update</button>
+            <button class="on" data-val="replace" data-i18n="mode_replace">Replace all</button>
+            <button data-val="merge" data-i18n="mode_merge">Merge / Update</button>
           </div>
         </div>
         <div class="setup-status" id="fldStatus" style="display:none"></div>
@@ -276,8 +281,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <table class="preview-tbl" id="fldPreviewTbl"></table>
         </div>
         <div class="setup-actions">
-          <button class="btn btn-secondary" id="fldClearBtn">Clear</button>
-          <button class="btn btn-primary" id="fldSaveBtn" disabled>Save fields</button>
+          <button class="btn btn-secondary" id="fldClearBtn" data-i18n="btn_clear_paste">Clear</button>
+          <button class="btn btn-primary" id="fldSaveBtn" disabled data-i18n="btn_save_fld">Save fields</button>
         </div>
       </div>
     </div>
@@ -285,25 +290,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <!-- === BACKUP PANEL === -->
     <div class="setup-panel" id="panel-backup">
       <div class="setup-card">
-        <h3>Export current data (backup)</h3>
-        <p class="help">Download CSV files of what's currently saved on this device. Keep these as a backup.</p>
+        <h3 data-i18n="section_export">Export current data (backup)</h3>
+        <p class="help" data-i18n="export_help">Download CSV files of what's currently saved on this device. Keep these as a backup.</p>
         <div class="setup-actions" style="justify-content:flex-start">
-          <button class="btn btn-secondary" id="exportEmpBtn">&#128229; Export employees</button>
-          <button class="btn btn-secondary" id="exportFldBtn">&#128229; Export fields/footage</button>
+          <button class="btn btn-secondary" id="exportEmpBtn" data-i18n="btn_export_emp">&#128229; Export employees</button>
+          <button class="btn btn-secondary" id="exportFldBtn" data-i18n="btn_export_fld">&#128229; Export fields/footage</button>
         </div>
       </div>
       <div class="setup-card danger-zone">
-        <h3>Reset to originals</h3>
-        <p class="help">This wipes any imported data on this device and brings back the employees and farms that shipped with the app.</p>
+        <h3 data-i18n="section_reset">Reset to originals</h3>
+        <p class="help" data-i18n="reset_help">This wipes any imported data on this device and brings back the employees and farms that shipped with the app.</p>
         <div class="setup-actions" style="justify-content:flex-start">
-          <button class="btn btn-warn" id="resetEmpBtn">Reset employees</button>
-          <button class="btn btn-warn" id="resetFldBtn">Reset fields/footage</button>
-          <button class="btn btn-warn" id="resetAllBtn">Reset everything</button>
+          <button class="btn btn-warn" id="resetEmpBtn" data-i18n="btn_reset_emp">Reset employees</button>
+          <button class="btn btn-warn" id="resetFldBtn" data-i18n="btn_reset_fld">Reset fields/footage</button>
+          <button class="btn btn-warn" id="resetAllBtn" data-i18n="btn_reset_all">Reset everything</button>
         </div>
       </div>
       <div class="setup-card">
-        <h3>About this app</h3>
-        <p class="help" style="margin-bottom:0">
+        <h3 data-i18n="section_about">About this app</h3>
+        <p class="help" data-i18n-html="about_text" style="margin-bottom:0">
           Daily Payroll - Footage Calculator<br>
           Data lives in this browser only. Use Export above to back it up.<br>
           Tip: keep the .xlsx roster you import &mdash; you can re-import it any time.
@@ -508,7 +513,7 @@ function addWorker() {
       '<div class="worker-num">' + wid + '</div>' +
       '<div class="worker-info">' +
         '<div class="search-wrap" id="swrap-' + wid + '">' +
-          '<input type="text" class="name-input" id="wname-' + wid + '" placeholder="Type worker name..." autocomplete="off">' +
+          '<input type="text" class="name-input" id="wname-' + wid + '" placeholder="' + t('ph_worker_name') + '" autocomplete="off">' +
           '<input type="hidden" id="wempid-' + wid + '">' +
           '<div class="search-list" id="slist-' + wid + '"></div>' +
         '</div>' +
@@ -518,10 +523,10 @@ function addWorker() {
       '<button class="remove-worker" data-wid="' + wid + '" title="Remove">&times;</button>' +
     '</div>' +
     '<table class="jobs-table">' +
-      '<thead><tr><th>#</th><th class="area-col"' + (FARMS[currentFarm].has_areas ? '' : ' style="display:none"') + '>Area</th><th>Field</th><th>Blk</th><th>Ft/Row</th><th>Rows</th><th>Units</th><th></th></tr></thead>' +
+      '<thead><tr><th data-col="col_num">' + t('col_num') + '</th><th data-col="col_area" class="area-col"' + (FARMS[currentFarm].has_areas ? '' : ' style="display:none"') + '>' + t('col_area') + '</th><th data-col="col_field">' + t('col_field') + '</th><th data-col="col_block">' + t('col_block') + '</th><th data-col="col_ftrow">' + t('col_ftrow') + '</th><th data-col="col_rows">' + t('col_rows') + '</th><th data-col="col_units">' + t('col_units') + '</th><th></th></tr></thead>' +
       '<tbody id="jobs-' + wid + '">' + buildJobRow(wid, 1) + '</tbody>' +
     '</table>' +
-    '<button class="add-job-btn" data-wid="' + wid + '">+ Add Job</button>';
+    '<button class="add-job-btn" data-wid="' + wid + '">' + t('btn_add_job') + '</button>';
 
   document.getElementById('workersContainer').appendChild(card);
 }
@@ -640,8 +645,8 @@ function buildSummaryText() {
   const date = document.getElementById('payrollDate').value;
   const sup = document.getElementById('supervisorName').value || 'N/A';
   let lines = [];
-  lines.push('DAILY PAYROLL - ' + date + ' - ' + currentFarm);
-  lines.push('Supervisor: ' + sup);
+  lines.push(t('summary_header') + ' - ' + date + ' - ' + currentFarm);
+  lines.push(t('summary_supervisor') + ' ' + sup);
   lines.push('---');
   
   document.querySelectorAll('.worker-card').forEach(card => {
@@ -654,7 +659,7 @@ function buildSummaryText() {
     if (!name && parseFloat(total) === 0) return;
 
     lines.push('');
-    lines.push('#' + wid + ' ' + (name || 'Unnamed') + (idInfo ? ' (' + idInfo + ')' : ''));
+    lines.push('#' + wid + ' ' + (name || t('unnamed')) + (idInfo ? ' (' + idInfo + ')' : ''));
     
     var tbody = document.getElementById('jobs-' + wid);
     if (tbody) {
@@ -674,24 +679,24 @@ function buildSummaryText() {
         var rows = rowsEl ? rowsEl.value : '';
         var units = unitsEl ? unitsEl.textContent : '';
         if (field && block && units !== '-') {
-          var jobLine = '  Job ' + (ji+1) + ': ';
-          if (area) jobLine += 'Area ' + area + ', ';
-          jobLine += 'Field ' + field + ', Blk ' + block + ', ' + ftrow + ' ft/row x ' + rows + ' rows = ' + units + ' units';
+          var jobLine = '  ' + t('summary_job') + ' ' + (ji+1) + ': ';
+          if (area) jobLine += t('summary_area') + ' ' + area + ', ';
+          jobLine += t('summary_field') + ' ' + field + ', ' + t('summary_blk') + ' ' + block + ', ' + ftrow + ' ' + t('summary_ftrow_x') + ' ' + rows + ' ' + t('summary_rows_eq') + ' ' + units + ' ' + t('summary_units_word');
           lines.push(jobLine);
         }
       }
     }
-    lines.push('  TOTAL: ' + total + ' units');
+    lines.push('  ' + t('summary_total') + ' ' + total + ' ' + t('summary_units_word'));
   });
   
   lines.push('');
-  lines.push('GRAND TOTAL: ' + document.getElementById('grandTotal').textContent + ' units');
+  lines.push(t('summary_grand_total') + ' ' + document.getElementById('grandTotal').textContent + ' ' + t('summary_units_word'));
   return lines.join('\n');
 }
 
 function copyToClipboard() {
   const text = buildSummaryText();
-  navigator.clipboard.writeText(text).then(() => showToast('Copied! Paste into a text message.'));
+  navigator.clipboard.writeText(text).then(() => showToast(t('toast_copied')));
 }
 
 function generateSummary() {
@@ -817,7 +822,7 @@ function _buildPDF() {
   var y = margin;
 
   var date = document.getElementById('payrollDate').value || 'N/A';
-  var sup = document.getElementById('supervisorName').value || 'N/A';
+  var sup = document.getElementById('supervisorName').value || t('supervisor_na');
   var farm = FARMS[currentFarm];
   var hasAreas = farm.has_areas;
 
@@ -1432,13 +1437,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderEmpPreview(parsed) {
     var wrap = $('empPreviewWrap'), tbl = $('empPreviewTbl');
     if (!parsed.items.length) { wrap.style.display = 'none'; return; }
-    var rows = ['<thead><tr><th>#</th><th>ID</th><th>Name</th><th>Petition</th></tr></thead><tbody>'];
+    var rows = ['<thead><tr><th>' + t('col_num') + '</th><th>' + t('h_col_id') + '</th><th>' + t('h_col_name') + '</th><th>' + t('h_col_petition') + '</th></tr></thead><tbody>'];
     var preview = parsed.items.slice(0, 25);
     preview.forEach(function(e, i) {
       rows.push('<tr><td>'+(i+1)+'</td><td>'+esc(e.id)+'</td><td>'+esc(e.name)+'</td><td>'+esc(e.petition)+'</td></tr>');
     });
     if (parsed.items.length > preview.length) {
-      rows.push('<tr class="dim"><td colspan="4">… and ' + (parsed.items.length - preview.length) + ' more rows</td></tr>');
+      rows.push('<tr class="dim"><td colspan="4">' + t('n_more_rows', {n: parsed.items.length - preview.length}) + '</td></tr>');
     }
     rows.push('</tbody>');
     tbl.innerHTML = rows.join('');
@@ -1448,14 +1453,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var parsed = rowsToEmployees(rows);
     empStaging = parsed.items;
     renderEmpPreview(parsed);
-    var msg = '✓ Parsed ' + parsed.items.length + ' employees';
-    if (parsed.skipped) msg += '   (skipped ' + parsed.skipped + ' rows we could not read)';
+    var msg = t('parsed_employees', {n: parsed.items.length});
+    if (parsed.skipped) msg += t('parsed_skipped', {n: parsed.skipped});
     setStatus('empStatus', msg, parsed.items.length ? 'success' : 'error');
     $('empSaveBtn').disabled = parsed.items.length === 0;
   }
   function handleEmpFile(file) {
     var name = (file.name || '').toLowerCase();
-    setStatus('empStatus', '⏳ Reading ' + file.name + ' …');
+    setStatus('empStatus', t('reading_file', {name: file.name}));
     var promise;
     if (/\.(xlsx|xls)$/.test(name)) {
       promise = parseXLSX(file).then(function(rows) { return rows; });
@@ -1465,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', function() {
       promise = readTextFile(file).then(function(text) { return parseDelimited(text); });
     }
     promise.then(processEmpRows).catch(function(err) {
-      setStatus('empStatus', '✗ ' + (err.message || 'Could not parse file'), 'error');
+      setStatus('empStatus', t('err_parse', {msg: err.message || t('err_default')}), 'error');
     });
   }
 
@@ -1535,13 +1540,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderFldPreview(parsed) {
     var wrap = $('fldPreviewWrap'), tbl = $('fldPreviewTbl');
     if (!parsed.items.length) { wrap.style.display = 'none'; return; }
-    var rows = ['<thead><tr><th>#</th><th>Farm</th><th>Area</th><th>Field</th><th>Block</th><th>Ft/Row</th></tr></thead><tbody>'];
+    var rows = ['<thead><tr><th>' + t('col_num') + '</th><th>' + t('summary_farms').replace(/s$/, '') + '</th><th>' + t('col_area') + '</th><th>' + t('col_field') + '</th><th>' + t('col_block') + '</th><th>' + t('col_ftrow') + '</th></tr></thead><tbody>'];
     var preview = parsed.items.slice(0, 25);
     preview.forEach(function(e, i) {
       rows.push('<tr><td>'+(i+1)+'</td><td>'+esc(e.farm)+'</td><td>'+esc(e.area)+'</td><td>'+esc(e.field)+'</td><td>'+e.block+'</td><td>'+e.footage+'</td></tr>');
     });
     if (parsed.items.length > preview.length) {
-      rows.push('<tr class="dim"><td colspan="6">… and ' + (parsed.items.length - preview.length) + ' more rows</td></tr>');
+      rows.push('<tr class="dim"><td colspan="6">' + t('n_more_rows', {n: parsed.items.length - preview.length}) + '</td></tr>');
     }
     rows.push('</tbody>');
     tbl.innerHTML = rows.join('');
@@ -1551,20 +1556,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var parsed = rowsToFields(rows);
     fldStaging = parsed.items;
     renderFldPreview(parsed);
-    var msg = '✓ Parsed ' + parsed.items.length + ' field/block rows';
-    if (parsed.skipped) msg += '   (skipped ' + parsed.skipped + ')';
+    var msg = t('parsed_fields', {n: parsed.items.length});
+    if (parsed.skipped) msg += t('parsed_fields_skipped', {n: parsed.skipped});
     setStatus('fldStatus', msg, parsed.items.length ? 'success' : 'error');
     $('fldSaveBtn').disabled = parsed.items.length === 0;
   }
   function handleFldFile(file) {
     var name = (file.name || '').toLowerCase();
-    setStatus('fldStatus', '⏳ Reading ' + file.name + ' …');
+    setStatus('fldStatus', t('reading_file', {name: file.name}));
     var promise;
     if (/\.(xlsx|xls)$/.test(name)) promise = parseXLSX(file);
     else if (/\.pdf$/.test(name))   promise = parsePDF(file).then(parseDelimited);
     else                             promise = readTextFile(file).then(parseDelimited);
     promise.then(processFldRows).catch(function(err) {
-      setStatus('fldStatus', '✗ ' + (err.message || 'Could not parse file'), 'error');
+      setStatus('fldStatus', t('err_parse', {msg: err.message || t('err_default')}), 'error');
     });
   }
 
@@ -1587,10 +1592,10 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       localStorage.setItem(STORAGE_EMP, JSON.stringify(newList));
       EMPLOYEES = newList;
-      showToast('Saved ' + newList.length + ' employees. Reloading…');
+      showToast(t('toast_emp_saved', {n: newList.length}));
       setTimeout(function() { location.reload(); }, 800);
     } catch (e) {
-      setStatus('empStatus', '✗ Could not save: ' + e.message, 'error');
+      setStatus('empStatus', t('err_save', {msg: e.message}), 'error');
     }
   }
   function saveFields() {
@@ -1600,29 +1605,29 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       localStorage.setItem(STORAGE_FARMS, JSON.stringify(newFarms));
       FARMS = newFarms;
-      showToast('Saved fields. Reloading…');
+      showToast(t('toast_fld_saved'));
       setTimeout(function() { location.reload(); }, 800);
     } catch (e) {
-      setStatus('fldStatus', '✗ Could not save: ' + e.message, 'error');
+      setStatus('fldStatus', t('err_save', {msg: e.message}), 'error');
     }
   }
   function resetEmployees() {
-    if (!confirm('Reset employees to the original list? Your imported employees will be removed.')) return;
+    if (!confirm(t('confirm_emp_reset'))) return;
     localStorage.removeItem(STORAGE_EMP);
-    showToast('Employees reset. Reloading…');
+    showToast(t('toast_emp_reset'));
     setTimeout(function() { location.reload(); }, 600);
   }
   function resetFields() {
-    if (!confirm('Reset fields & footage to originals? Your imported field data will be removed.')) return;
+    if (!confirm(t('confirm_fld_reset'))) return;
     localStorage.removeItem(STORAGE_FARMS);
-    showToast('Fields reset. Reloading…');
+    showToast(t('toast_fld_reset'));
     setTimeout(function() { location.reload(); }, 600);
   }
   function resetAll() {
-    if (!confirm('Reset EVERYTHING (employees + fields)? This cannot be undone.')) return;
+    if (!confirm(t('confirm_all_reset'))) return;
     localStorage.removeItem(STORAGE_EMP);
     localStorage.removeItem(STORAGE_FARMS);
-    showToast('All reset. Reloading…');
+    showToast(t('toast_all_reset'));
     setTimeout(function() { location.reload(); }, 600);
   }
   function exportEmpCSV() {
@@ -1671,6 +1676,278 @@ document.addEventListener('DOMContentLoaded', function() {
   }); }
 
   // ---------- PIN gate ----------
+  
+  // ---------- i18n (English / Spanish) ----------
+  var LANG_KEY = 'payroll_lang';
+  var _lang;
+  try { _lang = localStorage.getItem(LANG_KEY) || 'en'; } catch (e) { _lang = 'en'; }
+  if (_lang !== 'en' && _lang !== 'es') _lang = 'en';
+
+  var I18N = {
+    en: {
+      app_title: "Daily Payroll - Footage Calculator",
+      app_subtitle: "2026 Season",
+      restore_msg: "You have unsaved work from your last session. Restore it?",
+      restore_yes: "Yes, Restore",
+      restore_no: "No, Start Fresh",
+      save_not_yet: "Not saved yet",
+      save_saving: "Saving…",
+      save_saved: "Saved",
+      save_unsaved: "Unsaved changes",
+      save_just_saved: "Saved just now",
+      label_farm: "Farm:",
+      label_date: "Date:",
+      label_supervisor: "Supervisor:",
+      ph_your_name: "Your name",
+      btn_add_worker: "+ Add Worker",
+      ph_worker_name: "Type worker name...",
+      col_num: "#",
+      col_area: "Area",
+      col_field: "Field",
+      col_block: "Blk",
+      col_ftrow: "Ft/Row",
+      col_rows: "Rows",
+      col_units: "Units",
+      btn_add_job: "+ Add Job",
+      grand_total: "Grand Total:",
+      units_word: "units",
+      btn_clear: "Clear",
+      btn_copy: "Copy Text",
+      btn_share: "Share / Send",
+      pin_title: "Setup PIN",
+      pin_help: "Setup access is locked.<br>Enter the supervisor PIN to continue.",
+      pin_cancel: "Cancel",
+      pin_unlock: "Unlock",
+      pin_wrong: "Wrong PIN. Try again.",
+      setup_title: "Setup & Data Import",
+      tab_employees: "Employees",
+      tab_fields: "Fields & Footage",
+      tab_backup: "Backup / Reset",
+      summary_emp_loaded: "Employees loaded",
+      summary_originals: "Originals",
+      section_import_emp: "Import employees",
+      emp_import_help: "Paste from Excel/Google Sheets, or upload a <b>.xlsx</b>, <b>.csv</b>, or <b>.pdf</b> file.<br>Expected columns (in order): <code>ID</code> &nbsp; <code>Name</code> &nbsp; <code>Petition</code>. A header row is OK &mdash; we'll skip it.",
+      btn_upload: "📎 Upload file",
+      mode_replace: "Replace all",
+      mode_append: "Append",
+      btn_clear_paste: "Clear",
+      btn_save_emp: "Save employees",
+      summary_farms: "Farms",
+      summary_fields: "Fields",
+      summary_blocks: "Blocks",
+      section_import_fld: "Import fields & footage",
+      fld_import_help: "Paste from a spreadsheet or upload a <b>.xlsx</b>, <b>.csv</b>, or <b>.pdf</b> file.<br>Expected columns (in order): <code>Farm</code> <code>Area</code> <code>Field</code> <code>Block</code> <code>Footage</code>.<br><b>Area</b> is optional &mdash; leave blank for farms without areas. <b>Footage</b> is feet per row.",
+      mode_merge: "Merge / Update",
+      btn_save_fld: "Save fields",
+      section_export: "Export current data (backup)",
+      export_help: "Download CSV files of what's currently saved on this device. Keep these as a backup.",
+      btn_export_emp: "📥 Export employees",
+      btn_export_fld: "📥 Export fields/footage",
+      section_reset: "Reset to originals",
+      reset_help: "This wipes any imported data on this device and brings back the employees and farms that shipped with the app.",
+      btn_reset_emp: "Reset employees",
+      btn_reset_fld: "Reset fields/footage",
+      btn_reset_all: "Reset everything",
+      section_about: "About this app",
+      about_text: "Daily Payroll - Footage Calculator<br>Data lives in this browser only. Use Export above to back it up.<br>Tip: keep the .xlsx roster you import &mdash; you can re-import it any time.",
+      ph_emp_paste: "H25700\tLOPEZ MARTINEZ, JUAN\tFF26\nH25701\tPEREZ GARCIA, MARIA\tFL26",
+      ph_fld_paste: "Farm 2\t02\t02A\t1\t320\nFarm 2\t02\t02A\t2\t325\nFarm 2\t02\t02B\t1\t310",
+      toast_emp_saved: "Saved {n} employees. Reloading…",
+      toast_fld_saved: "Saved fields. Reloading…",
+      toast_emp_reset: "Employees reset. Reloading…",
+      toast_fld_reset: "Fields reset. Reloading…",
+      toast_all_reset: "All reset. Reloading…",
+      toast_copied: "Copied! Paste into a text message.",
+      confirm_emp_reset: "Reset employees to the original list? Your imported employees will be removed.",
+      confirm_fld_reset: "Reset fields & footage to originals? Your imported field data will be removed.",
+      confirm_all_reset: "Reset EVERYTHING (employees + fields)? This cannot be undone.",
+      parsed_employees: "✓ Parsed {n} employees",
+      parsed_skipped: "   (skipped {n} rows we could not read)",
+      parsed_fields: "✓ Parsed {n} field/block rows",
+      parsed_fields_skipped: "   (skipped {n})",
+      reading_file: "⏳ Reading {name} …",
+      err_parse: "✗ {msg}",
+      err_save: "✗ Could not save: {msg}",
+      err_default: "Could not parse file",
+      summary_header: "DAILY PAYROLL",
+      summary_supervisor: "Supervisor:",
+      supervisor_na: "N/A",
+      summary_job: "Job",
+      summary_area: "Area",
+      summary_field: "Field",
+      summary_blk: "Blk",
+      summary_ftrow_x: "ft/row x",
+      summary_rows_eq: "rows =",
+      summary_units_word: "units",
+      summary_total: "TOTAL:",
+      summary_grand_total: "GRAND TOTAL:",
+      unnamed: "Unnamed",
+      n_more_rows: "… and {n} more rows",
+      h_col_id: "ID",
+      h_col_name: "Name",
+      h_col_petition: "Petition"
+    },
+    es: {
+      app_title: "Pago Diario - Calculadora de Pies",
+      app_subtitle: "Temporada 2026",
+      restore_msg: "Tiene trabajo sin guardar de su última sesión. ¿Restaurar?",
+      restore_yes: "Sí, Restaurar",
+      restore_no: "No, Empezar de Nuevo",
+      save_not_yet: "Aún no guardado",
+      save_saving: "Guardando…",
+      save_saved: "Guardado",
+      save_unsaved: "Cambios sin guardar",
+      save_just_saved: "Guardado ahora",
+      label_farm: "Rancho:",
+      label_date: "Fecha:",
+      label_supervisor: "Supervisor:",
+      ph_your_name: "Su nombre",
+      btn_add_worker: "+ Agregar Trabajador",
+      ph_worker_name: "Escriba nombre del trabajador...",
+      col_num: "#",
+      col_area: "Área",
+      col_field: "Campo",
+      col_block: "Bloq",
+      col_ftrow: "Pies/Fila",
+      col_rows: "Filas",
+      col_units: "Unidades",
+      btn_add_job: "+ Agregar Tarea",
+      grand_total: "Total General:",
+      units_word: "unidades",
+      btn_clear: "Borrar",
+      btn_copy: "Copiar Texto",
+      btn_share: "Compartir / Enviar",
+      pin_title: "PIN de Configuración",
+      pin_help: "El acceso a configuración está bloqueado.<br>Ingrese el PIN de supervisor para continuar.",
+      pin_cancel: "Cancelar",
+      pin_unlock: "Desbloquear",
+      pin_wrong: "PIN incorrecto. Intente de nuevo.",
+      setup_title: "Configuración e Importación",
+      tab_employees: "Empleados",
+      tab_fields: "Campos y Pies",
+      tab_backup: "Respaldo / Restablecer",
+      summary_emp_loaded: "Empleados cargados",
+      summary_originals: "Originales",
+      section_import_emp: "Importar empleados",
+      emp_import_help: "Pegue desde Excel/Google Sheets, o suba un archivo <b>.xlsx</b>, <b>.csv</b>, o <b>.pdf</b>.<br>Columnas esperadas (en orden): <code>ID</code> &nbsp; <code>Nombre</code> &nbsp; <code>Petición</code>. Una fila de encabezado está bien &mdash; la omitiremos.",
+      btn_upload: "📎 Subir archivo",
+      mode_replace: "Reemplazar todo",
+      mode_append: "Agregar",
+      btn_clear_paste: "Borrar",
+      btn_save_emp: "Guardar empleados",
+      summary_farms: "Ranchos",
+      summary_fields: "Campos",
+      summary_blocks: "Bloques",
+      section_import_fld: "Importar campos y pies",
+      fld_import_help: "Pegue de una hoja de cálculo o suba un archivo <b>.xlsx</b>, <b>.csv</b>, o <b>.pdf</b>.<br>Columnas esperadas (en orden): <code>Rancho</code> <code>Área</code> <code>Campo</code> <code>Bloque</code> <code>Pies</code>.<br><b>Área</b> es opcional &mdash; déjelo en blanco para ranchos sin áreas. <b>Pies</b> son los pies por fila.",
+      mode_merge: "Combinar / Actualizar",
+      btn_save_fld: "Guardar campos",
+      section_export: "Exportar datos actuales (respaldo)",
+      export_help: "Descargue archivos CSV de lo guardado en este dispositivo. Guárdelos como respaldo.",
+      btn_export_emp: "📥 Exportar empleados",
+      btn_export_fld: "📥 Exportar campos/pies",
+      section_reset: "Restablecer a originales",
+      reset_help: "Esto borra los datos importados en este dispositivo y trae de vuelta los empleados y ranchos que vinieron con la app.",
+      btn_reset_emp: "Restablecer empleados",
+      btn_reset_fld: "Restablecer campos/pies",
+      btn_reset_all: "Restablecer todo",
+      section_about: "Acerca de esta app",
+      about_text: "Pago Diario - Calculadora de Pies<br>Los datos viven solo en este navegador. Use Exportar arriba para respaldo.<br>Consejo: guarde el archivo .xlsx que importa &mdash; puede reimportarlo en cualquier momento.",
+      ph_emp_paste: "H25700\tLOPEZ MARTINEZ, JUAN\tFF26\nH25701\tPEREZ GARCIA, MARIA\tFL26",
+      ph_fld_paste: "Farm 2\t02\t02A\t1\t320\nFarm 2\t02\t02A\t2\t325\nFarm 2\t02\t02B\t1\t310",
+      toast_emp_saved: "Se guardaron {n} empleados. Recargando…",
+      toast_fld_saved: "Campos guardados. Recargando…",
+      toast_emp_reset: "Empleados restablecidos. Recargando…",
+      toast_fld_reset: "Campos restablecidos. Recargando…",
+      toast_all_reset: "Todo restablecido. Recargando…",
+      toast_copied: "¡Copiado! Pegue en un mensaje de texto.",
+      confirm_emp_reset: "¿Restablecer empleados a la lista original? Los empleados importados se eliminarán.",
+      confirm_fld_reset: "¿Restablecer campos y pies a los originales? Los datos importados se eliminarán.",
+      confirm_all_reset: "¿Restablecer TODO (empleados + campos)? Esto no se puede deshacer.",
+      parsed_employees: "✓ {n} empleados analizados",
+      parsed_skipped: "   (omitidas {n} filas que no se pudieron leer)",
+      parsed_fields: "✓ {n} filas de campo/bloque analizadas",
+      parsed_fields_skipped: "   (omitidas {n})",
+      reading_file: "⏳ Leyendo {name} …",
+      err_parse: "✗ {msg}",
+      err_save: "✗ No se pudo guardar: {msg}",
+      err_default: "No se pudo analizar el archivo",
+      summary_header: "PAGO DIARIO",
+      summary_supervisor: "Supervisor:",
+      supervisor_na: "N/A",
+      summary_job: "Tarea",
+      summary_area: "Área",
+      summary_field: "Campo",
+      summary_blk: "Bloq",
+      summary_ftrow_x: "pies/fila x",
+      summary_rows_eq: "filas =",
+      summary_units_word: "unidades",
+      summary_total: "TOTAL:",
+      summary_grand_total: "TOTAL GENERAL:",
+      unnamed: "Sin nombre",
+      n_more_rows: "… y {n} filas más",
+      h_col_id: "ID",
+      h_col_name: "Nombre",
+      h_col_petition: "Petición"
+    }
+  };
+
+  function t(key, vars) {
+    var bundle = I18N[_lang] || I18N.en;
+    var s = bundle[key];
+    if (s === undefined) s = I18N.en[key] || key;
+    if (vars) {
+      Object.keys(vars).forEach(function(k) {
+        s = s.split('{' + k + '}').join(vars[k]);
+      });
+    }
+    return s;
+  }
+
+  function applyLang() {
+    document.documentElement.lang = _lang;
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+      el.innerHTML = t(el.getAttribute('data-i18n-html'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+    });
+    var enBtn = document.getElementById('langEnBtn');
+    var esBtn = document.getElementById('langEsBtn');
+    if (enBtn && esBtn) {
+      enBtn.classList.toggle('on', _lang === 'en');
+      esBtn.classList.toggle('on', _lang === 'es');
+    }
+    // Re-translate existing worker rows (column headers + Add Job buttons)
+    document.querySelectorAll('.jobs-table .area-col').forEach(function(th) { th.textContent = t('col_area'); });
+    document.querySelectorAll('.jobs-table thead th[data-col]').forEach(function(th) {
+      var k = th.getAttribute('data-col');
+      if (k) th.textContent = t(k);
+    });
+    document.querySelectorAll('.add-job-btn').forEach(function(b) { b.textContent = t('btn_add_job'); });
+    document.querySelectorAll('.name-input').forEach(function(inp) { inp.setAttribute('placeholder', t('ph_worker_name')); });
+    // Grand total label + units
+    var gt = document.querySelector('.grand-total');
+    if (gt) {
+      var spans = gt.querySelectorAll('span[data-i18n]');
+      spans.forEach(function(s) { s.textContent = t(s.getAttribute('data-i18n')); });
+    }
+  }
+  function setLang(lang) {
+    if (lang !== 'en' && lang !== 'es') return;
+    _lang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyLang();
+  }
+  // Expose for outside the IIFE
+  window.t = t;
+  window.setLang = setLang;
+  window.applyLang = applyLang;
+  window.getLang = function() { return _lang; };
+
   var SETUP_PIN = '5678';
   var PIN_SESSION_KEY = 'payroll_setup_pin_ok';
   function isPinAuthed() {
@@ -1758,6 +2035,11 @@ document.addEventListener('DOMContentLoaded', function() {
   window.refreshFarmSelect = refreshFarmSelect;
 
   document.addEventListener('DOMContentLoaded', function() {
+    // Apply language on load and wire up toggle
+    applyLang();
+    document.getElementById('langEnBtn').addEventListener('click', function() { setLang('en'); });
+    document.getElementById('langEsBtn').addEventListener('click', function() { setLang('es'); });
+
     // Re-populate farm select from possibly-overridden FARMS
     refreshFarmSelect();
 
