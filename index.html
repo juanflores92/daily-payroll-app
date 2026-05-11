@@ -1921,8 +1921,8 @@ document.addEventListener('DOMContentLoaded', function() {
       enBtn.classList.toggle('on', _lang === 'en');
       esBtn.classList.toggle('on', _lang === 'es');
     }
-    // Re-translate existing worker rows (column headers + Add Job buttons)
-    document.querySelectorAll('.jobs-table .area-col').forEach(function(th) { th.textContent = t('col_area'); });
+    // Re-translate existing worker rows (header cells only — body TDs share .area-col
+    // for show/hide and must keep their <select> children)
     document.querySelectorAll('.jobs-table thead th[data-col]').forEach(function(th) {
       var k = th.getAttribute('data-col');
       if (k) th.textContent = t(k);
