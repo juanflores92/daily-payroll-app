@@ -1,4 +1,4 @@
-var CACHE_NAME = 'payroll-v2';
+var CACHE_NAME = 'payroll-v3';
 var URLS_TO_CACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e) {

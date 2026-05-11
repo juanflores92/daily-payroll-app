@@ -123,6 +123,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-warn:hover{background:#f8c9c9}
 .spinner-mini{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#1a5632;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* === PIN gate === */
+.pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.pin-overlay.open{display:flex}
+.pin-card{background:#fff;border-radius:14px;max-width:340px;width:100%;padding:22px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center}
+.pin-card h3{font-size:1.1rem;color:#1a5632;margin-bottom:6px}
+.pin-card p.help{font-size:.85rem;color:#666;margin-bottom:14px;line-height:1.4}
+.pin-card .pin-input{width:100%;padding:14px 16px;border:1.5px solid #ddd;border-radius:10px;font-size:1.4rem;text-align:center;letter-spacing:.6em;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafbfc}
+.pin-card .pin-input:focus{outline:none;border-color:#2d8a4e;background:#fff;box-shadow:0 0 0 3px rgba(45,138,78,.12)}
+.pin-error{color:#c0392b;font-size:.85rem;font-weight:600;min-height:1.2em;margin-top:8px}
+.pin-actions{display:flex;gap:8px;margin-top:14px}
+.pin-actions .btn{flex:1;padding:11px 14px}
 @media(max-width:600px){
   .setup-tab{font-size:.82rem;min-width:90px;padding:12px 8px}
   .setup-card{padding:12px}
@@ -171,6 +182,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <button class="btn btn-secondary" id="clearBtn">Clear</button>
     <button class="btn btn-secondary" id="copyBtn">Copy Text</button>
     <button class="btn btn-primary" id="shareBtn">Share / Send</button>
+  </div>
+</div>
+
+<!-- ============ PIN GATE ============ -->
+<div class="pin-overlay" id="pinOverlay" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <div class="pin-card">
+    <h3 id="pinTitle">Setup PIN</h3>
+    <p class="help">Setup access is locked.<br>Enter the supervisor PIN to continue.</p>
+    <input type="password" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-actions">
+      <button class="btn btn-secondary" id="pinCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
   </div>
 </div>
 
@@ -1645,8 +1670,43 @@ document.addEventListener('DOMContentLoaded', function() {
     return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;';
   }); }
 
+  // ---------- PIN gate ----------
+  var SETUP_PIN = '5678';
+  var PIN_SESSION_KEY = 'payroll_setup_pin_ok';
+  function isPinAuthed() {
+    try { return sessionStorage.getItem(PIN_SESSION_KEY) === '1'; } catch (e) { return false; }
+  }
+  function markPinAuthed() {
+    try { sessionStorage.setItem(PIN_SESSION_KEY, '1'); } catch (e) {}
+  }
+  function showPinGate() {
+    $('pinInput').value = '';
+    $('pinError').textContent = '';
+    $('pinOverlay').classList.add('open');
+    setTimeout(function() { $('pinInput').focus(); }, 80);
+  }
+  function hidePinGate() {
+    $('pinOverlay').classList.remove('open');
+  }
+  function submitPin() {
+    var v = ($('pinInput').value || '').trim();
+    if (v === SETUP_PIN) {
+      markPinAuthed();
+      hidePinGate();
+      doOpenSetup();
+    } else {
+      $('pinError').textContent = 'Wrong PIN. Try again.';
+      $('pinInput').value = '';
+      $('pinInput').focus();
+    }
+  }
+
   // ---------- UI: open / close / tabs ----------
   function openSetup() {
+    if (!isPinAuthed()) { showPinGate(); return; }
+    doOpenSetup();
+  }
+  function doOpenSetup() {
     refreshSummary();
     $('setupOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -1705,7 +1765,17 @@ document.addEventListener('DOMContentLoaded', function() {
     $('openSetupBtn').addEventListener('click', openSetup);
     $('closeSetupBtn').addEventListener('click', closeSetup);
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && $('setupOverlay').classList.contains('open')) closeSetup();
+      if (e.key === 'Escape') {
+        if ($('pinOverlay').classList.contains('open')) hidePinGate();
+        else if ($('setupOverlay').classList.contains('open')) closeSetup();
+      }
+    });
+
+    // PIN gate buttons
+    $('pinSubmitBtn').addEventListener('click', submitPin);
+    $('pinCancelBtn').addEventListener('click', hidePinGate);
+    $('pinInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); submitPin(); }
     });
 
     // Tab buttons
