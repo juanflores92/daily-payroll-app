@@ -400,6 +400,9 @@ function init() {
     for (var i = 0; i < ftEls.length; i++) { ftEls[i].textContent = '-'; }
     var unitEls = document.querySelectorAll('[id^="units-"]');
     for (var i = 0; i < unitEls.length; i++) { unitEls[i].textContent = '-'; }
+    // Re-evaluate over-max warnings under the new farm's data
+    lastOverMaxAlerts = {};
+    recheckAllRowsMax();
   });
   document.getElementById('addWorkerBtn').addEventListener('click', function(e) { e.preventDefault(); addWorker(); });
   document.getElementById('clearBtn').addEventListener('click', function(e) { e.preventDefault(); clearAll(); });
@@ -550,12 +553,13 @@ function removeJob(jid, wid) {
     row.remove();
     updateWorkerTotal(wid);
     updateGrandTotal();
+    recheckAllRowsMax();
   }
 }
 
 function removeWorker(wid) {
   var el = document.getElementById('worker-' + wid);
-  if (el) { el.remove(); updateGrandTotal(); }
+  if (el) { el.remove(); updateGrandTotal(); recheckAllRowsMax(); }
 }
 
 function onAreaChange(jid) {
@@ -621,40 +625,66 @@ function calcUnits(jid) {
   updateGrandTotal();
 }
 
-// Warn if the supervisor picks more rows than the map says the block has.
-// Doesn't block — just colors the cell orange and pops a one-shot toast.
-function checkRowsMax(jid) {
-  var rowsEl = document.getElementById('rows-' + jid);
-  var fieldEl = document.getElementById('field-' + jid);
-  var blockEl = document.getElementById('block-' + jid);
-  if (!rowsEl || !fieldEl || !blockEl) return;
+// Warn if the TOTAL rows logged across all workers/jobs for a block exceed
+// what the map allows. Marks every row contributing to the overage so the
+// supervisor can pick where to trim. Doesn't block submission — just flags.
+var lastOverMaxAlerts = {};   // key -> last total we already toasted about
+function checkRowsMax(_jid) {
+  // _jid is ignored — we always re-check the whole page since totals are global.
+  recheckAllRowsMax();
+}
+function recheckAllRowsMax() {
+  // Reset all existing visual warnings first
+  document.querySelectorAll('select[id^="rows-"].over-max').forEach(function(el) {
+    el.classList.remove('over-max');
+    el.removeAttribute('title');
+  });
   var farm = FARMS[currentFarm];
-  if (!farm || !farm.block_max_rows) {
-    rowsEl.classList.remove('over-max'); rowsEl.removeAttribute('title'); return;
-  }
-  var field = fieldEl.value;
-  var block = blockEl.value;
-  if (!field || !block) {
-    rowsEl.classList.remove('over-max'); rowsEl.removeAttribute('title'); return;
-  }
-  var max = farm.block_max_rows[field + '|' + block];
-  var val = parseFloat(rowsEl.value);
-  if (max && !isNaN(val) && val > max) {
-    rowsEl.classList.add('over-max');
+  if (!farm || !farm.block_max_rows) { lastOverMaxAlerts = {}; return; }
+
+  // Sum rows by field|block across every job row on the page
+  var totals = {};  // 'Field|Block' -> { total: N, jids: [] }
+  document.querySelectorAll('tr[id^="job-"]').forEach(function(tr) {
+    var jid = tr.id.replace('job-', '');
+    var fieldEl = document.getElementById('field-' + jid);
+    var blockEl = document.getElementById('block-' + jid);
+    var rowsEl  = document.getElementById('rows-' + jid);
+    if (!fieldEl || !blockEl || !rowsEl) return;
+    var field = fieldEl.value, block = blockEl.value;
+    if (!field || !block) return;
+    var val = parseFloat(rowsEl.value);
+    if (isNaN(val) || val <= 0) return;
+    var key = field + '|' + block;
+    if (!totals[key]) totals[key] = { total: 0, jids: [] };
+    totals[key].total += val;
+    totals[key].jids.push(jid);
+  });
+
+  // Flag every job entry that contributes to an over-max block
+  var stillOver = {};
+  Object.keys(totals).forEach(function(key) {
+    var max = farm.block_max_rows[key];
+    var info = totals[key];
+    if (!max || info.total <= max) return;
+    var parts = key.split('|');
     var msg = (typeof t === 'function')
-      ? t('warn_rows_over', { block: block, max: max })
-      : 'Block ' + block + ' only has ' + max + ' rows on the map.';
-    rowsEl.title = msg;
-    var marker = val + '|' + max + '|' + block;
-    if (rowsEl.dataset.lastWarn !== marker) {
-      rowsEl.dataset.lastWarn = marker;
+      ? t('warn_rows_over_total', { block: parts[1], total: info.total, max: max })
+      : 'Block ' + parts[1] + ': ' + info.total + ' rows logged but map shows only ' + max;
+    info.jids.forEach(function(jid) {
+      var el = document.getElementById('rows-' + jid);
+      if (el) { el.classList.add('over-max'); el.title = msg; }
+    });
+    stillOver[key] = info.total;
+    // Toast only when the total changes (new overage, or grew/shrank while still over)
+    if (lastOverMaxAlerts[key] !== info.total) {
       showToast(msg);
+      lastOverMaxAlerts[key] = info.total;
     }
-  } else {
-    rowsEl.classList.remove('over-max');
-    rowsEl.removeAttribute('title');
-    delete rowsEl.dataset.lastWarn;
-  }
+  });
+  // Drop alert state for blocks that came back within the limit
+  Object.keys(lastOverMaxAlerts).forEach(function(k) {
+    if (!(k in stillOver)) delete lastOverMaxAlerts[k];
+  });
 }
 
 function updateWorkerTotal(wid) {
@@ -1825,7 +1855,8 @@ document.addEventListener('DOMContentLoaded', function() {
       h_col_id: "ID",
       h_col_name: "Name",
       h_col_petition: "Petition",
-      warn_rows_over: "⚠️ Block {block} only has {max} rows on the map. Override kept."
+      warn_rows_over: "⚠️ Block {block} only has {max} rows on the map. Override kept.",
+      warn_rows_over_total: "⚠️ Block {block}: {total} rows logged today, but map shows only {max}"
     },
     es: {
       app_title: "Pago Diario - Calculadora de Pies",
@@ -1929,7 +1960,8 @@ document.addEventListener('DOMContentLoaded', function() {
       h_col_id: "ID",
       h_col_name: "Nombre",
       h_col_petition: "Petición",
-      warn_rows_over: "⚠️ El bloque {block} sólo tiene {max} filas en el mapa. Anulación guardada."
+      warn_rows_over: "⚠️ El bloque {block} sólo tiene {max} filas en el mapa. Anulación guardada.",
+      warn_rows_over_total: "⚠️ Bloque {block}: {total} filas registradas hoy, pero el mapa muestra sólo {max}"
     }
   };
 
