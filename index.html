@@ -133,6 +133,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .danger-zone h3{color:#c0392b}
 .btn-warn{background:#fde8e8;color:#c0392b}
 .btn-warn:hover{background:#f8c9c9}
+.btn-submit{background:#E65100;color:#fff;padding:12px 22px;font-size:1rem;box-shadow:0 2px 6px rgba(230,81,0,.3)}
+.btn-submit:hover,.btn-submit:active{background:#D84315;box-shadow:0 3px 8px rgba(230,81,0,.4)}
+.btn-submit:disabled{background:#ccc;color:#888;box-shadow:none;cursor:not-allowed}
+/* === Day History === */
+.history-search{width:100%;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;margin-bottom:12px;background:#fafbfc}
+.history-search:focus{outline:none;border-color:#2d8a4e;background:#fff;box-shadow:0 0 0 2px rgba(45,138,78,.12)}
+.day-entry{background:#fff;border-radius:10px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden}
+.day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:#f7faf7;border-bottom:1px solid #e8f0e8;-webkit-tap-highlight-color:transparent}
+.day-head:hover{background:#eef4ee}
+.day-head .meta{font-size:.78rem;color:#666;margin-top:2px}
+.day-head .meta b{color:#1a5632}
+.day-head .caret{color:#1a5632;font-weight:700;font-size:.9rem;margin-left:8px}
+.day-head .date{font-weight:700;color:#1a5632;font-size:.95rem}
+.day-body{display:none;padding:10px 14px;background:#fff}
+.day-entry.open .day-body{display:block}
+.day-entry.open .day-head .caret{transform:rotate(90deg)}
+.day-worker{border-bottom:1px solid #f0f0f0;padding:8px 0}
+.day-worker:last-child{border-bottom:none}
+.day-worker .name{font-weight:600;color:#1a1a2e;font-size:.9rem}
+.day-worker .wid{color:#888;font-size:.75rem;margin-right:4px}
+.day-worker .total{float:right;color:#1a5632;font-weight:700;font-size:.9rem}
+.day-worker .jobs{margin:4px 0 0 8px;font-size:.8rem;color:#555;line-height:1.5}
+.day-worker .jobs .job{display:block}
+.day-worker mark{background:#fff3b0;color:#1a1a2e;padding:0 2px;border-radius:2px}
+.history-empty{text-align:center;color:#888;padding:30px 10px;font-size:.9rem}
+.history-count{font-size:.78rem;color:#666;margin-bottom:8px}
+.locked-notice{display:flex;align-items:center;gap:8px;background:#FFF3E0;border-left:3px solid #E65100;color:#E65100;padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:.85rem;font-weight:600}
 .spinner-mini{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#1a5632;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* === PIN gate === */
@@ -201,7 +228,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="action-btns">
     <button class="btn btn-secondary" id="clearBtn" data-i18n="btn_clear">Clear</button>
     <button class="btn btn-secondary" id="copyBtn" data-i18n="btn_copy">Copy Text</button>
-    <button class="btn btn-primary" id="shareBtn" data-i18n="btn_share">Share / Send</button>
+    <button class="btn btn-secondary" id="shareBtn" data-i18n="btn_share">Share</button>
+    <button class="btn btn-submit" id="submitDayBtn" data-i18n="btn_submit_day">▶ Submit Day</button>
   </div>
 </div>
 
@@ -228,6 +256,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="setup-tabs" role="tablist">
     <button class="setup-tab active" data-tab="employees" role="tab" data-i18n="tab_employees">Employees</button>
     <button class="setup-tab" data-tab="fields" role="tab" data-i18n="tab_fields">Fields &amp; Footage</button>
+    <button class="setup-tab" data-tab="history" role="tab" data-i18n="tab_history">Day History</button>
     <button class="setup-tab" data-tab="backup" role="tab" data-i18n="tab_backup">Backup / Reset</button>
   </div>
   <div class="setup-body">
@@ -298,6 +327,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="setup-actions">
           <button class="btn btn-secondary" id="fldClearBtn" data-i18n="btn_clear_paste">Clear</button>
           <button class="btn btn-primary" id="fldSaveBtn" disabled data-i18n="btn_save_fld">Save fields</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === DAY HISTORY PANEL === -->
+    <div class="setup-panel" id="panel-history">
+      <div class="setup-card">
+        <h3 data-i18n="section_day_history">Day History</h3>
+        <p class="help" data-i18n="history_help">Every submitted day is kept here with full worker + job detail. Search by employee name, field, or block.</p>
+        <input type="search" class="history-search" id="historySearch" placeholder="Search name, field, or block…" data-i18n-placeholder="ph_history_search">
+        <div class="history-count" id="historyCount"></div>
+        <div id="historyList"></div>
+      </div>
+      <div class="setup-card danger-zone">
+        <h3 data-i18n="section_clear_history">Clear history</h3>
+        <p class="help" data-i18n="clear_history_help">Remove all archived days. The data is only on this device — if your supervisors need backups, use Export in the Backup/Reset tab.</p>
+        <div class="setup-actions" style="justify-content:flex-start">
+          <button class="btn btn-secondary" id="exportHistoryBtn" data-i18n="btn_export_history">📥 Export history as CSV</button>
+          <button class="btn btn-warn" id="clearHistoryBtn" data-i18n="btn_clear_history">Clear all history</button>
         </div>
       </div>
     </div>
@@ -907,6 +955,118 @@ function clearAll() {
   workerCount = 0;
   for (let i = 0; i < 3; i++) addWorker();
   updateGrandTotal();
+}
+
+// ===================================================================
+// === SUBMIT DAY: archive the day, share the summary, clear form ====
+// ===================================================================
+var ARCHIVE_KEY = 'payroll_archive_v1';
+
+function loadArchive() {
+  try { var raw = localStorage.getItem(ARCHIVE_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e) { return []; }
+}
+function saveArchive(arr) {
+  try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(arr)); return true; }
+  catch(e) { console.warn('Archive save failed', e); return false; }
+}
+
+// Capture current form state into a plain object we can store and search.
+function captureDaySnapshot() {
+  var date = document.getElementById('payrollDate').value || '';
+  var sup  = document.getElementById('supervisorName').value || '';
+  var farm = document.getElementById('farmSelect').value || currentFarm;
+  var workers = [];
+  document.querySelectorAll('.worker-card').forEach(function(card) {
+    var wid = card.id.replace('worker-', '');
+    var name = (document.getElementById('wname-'+wid)||{}).value || '';
+    var empId = (document.getElementById('wempid-'+wid)||{}).value || '';
+    var idInfoEl = document.getElementById('wid-'+wid);
+    var idInfo = idInfoEl ? idInfoEl.textContent : '';
+    var totalEl = document.getElementById('wtotal-'+wid);
+    var total = totalEl ? parseFloat(totalEl.textContent) || 0 : 0;
+    var jobs = [];
+    var tbody = document.getElementById('jobs-'+wid);
+    if (tbody) {
+      tbody.querySelectorAll('tr[id^="job-"]').forEach(function(tr) {
+        var jid = tr.id.replace('job-','');
+        var areaEl = document.getElementById('area-'+jid);
+        var fieldEl = document.getElementById('field-'+jid);
+        var blockEl = document.getElementById('block-'+jid);
+        var ftrowEl = document.getElementById('ftrow-'+jid);
+        var rowsEl = document.getElementById('rows-'+jid);
+        var unitsEl = document.getElementById('units-'+jid);
+        var units = unitsEl ? parseFloat(unitsEl.textContent) : NaN;
+        if (isNaN(units) || units <= 0) return;
+        jobs.push({
+          area: areaEl ? areaEl.value : '',
+          field: fieldEl ? fieldEl.value : '',
+          block: blockEl ? blockEl.value : '',
+          ftRow: ftrowEl ? parseFloat(ftrowEl.textContent) || 0 : 0,
+          rows: rowsEl ? parseFloat(rowsEl.value) || 0 : 0,
+          units: units
+        });
+      });
+    }
+    // Skip workers with no name AND no jobs (empty rows)
+    if (!name && jobs.length === 0) return;
+    workers.push({ name: name, empId: empId, idInfo: idInfo, total: total, jobs: jobs });
+  });
+  var grandTotalEl = document.getElementById('grandTotal');
+  var grand = grandTotalEl ? parseFloat(grandTotalEl.textContent) || 0 : 0;
+  // Area/field breakdown
+  var grouped = (typeof computeGroupedTotals === 'function') ? computeGroupedTotals() : { totals:{}, groupedBy:'area' };
+  return {
+    date: date,
+    farm: farm,
+    supervisor: sup,
+    submittedAt: new Date().toISOString(),
+    workers: workers,
+    grandTotal: grand,
+    groupedBy: grouped.groupedBy,
+    breakdown: grouped.totals
+  };
+}
+
+function submitDay() {
+  var snapshot = captureDaySnapshot();
+  if (!snapshot.workers.length) {
+    showToast(t('submit_nothing'));
+    return;
+  }
+  var msg = t('submit_confirm', { total: snapshot.grandTotal.toFixed(2), workers: snapshot.workers.length });
+  if (!confirm(msg)) return;
+
+  // Archive first (so a failed share doesn't lose data)
+  var arr = loadArchive();
+  arr.unshift(snapshot);        // newest first
+  if (arr.length > 400) arr.length = 400;   // keep ~1 year of data
+  saveArchive(arr);
+
+  // Open the share modal (SMS, PDF, copy)
+  generateSummary();
+
+  // Advance date and clear form in the background
+  advanceDate();
+  resetFormForNewDay();
+  showToast(t('submit_done'));
+}
+
+function advanceDate() {
+  var el = document.getElementById('payrollDate');
+  if (!el || !el.value) return;
+  var d = new Date(el.value + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  el.value = d.toISOString().split('T')[0];
+}
+
+function resetFormForNewDay() {
+  document.getElementById('workersContainer').innerHTML = '';
+  workerCount = 0;
+  for (var i = 0; i < 3; i++) addWorker();
+  updateGrandTotal();
+  // Also clear the autosave so the Restore banner doesn't offer stale data
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
 }
 
 function showToast(msg) {
@@ -1920,7 +2080,27 @@ document.addEventListener('DOMContentLoaded', function() {
       warn_rows_over: "⚠️ Block {block} only has {max} rows on the map. Override kept.",
       warn_rows_over_total: "⚠️ Block {block}: {total} rows logged today, but map shows only {max}",
       summary_by_area: "BY AREA:",
-      summary_by_field: "BY FIELD:"
+      summary_by_field: "BY FIELD:",
+      btn_submit_day: "▶ Submit Day",
+      submit_confirm: "Submit this day?\n\n{workers} workers · {total} units total\n\nThis will send the summary, save a copy to Day History, and clear the form for tomorrow.",
+      submit_nothing: "Nothing to submit — add some workers first.",
+      submit_done: "Day submitted. Form cleared for tomorrow.",
+      tab_history: "Day History",
+      section_day_history: "Day History",
+      history_help: "Every submitted day is kept here with full worker + job detail. Search by employee name, field, or block.",
+      ph_history_search: "Search name, field, or block…",
+      history_empty: "No submitted days yet. Use Submit Day in the main screen.",
+      history_no_match: "No days or workers match that search.",
+      history_count: "Showing {shown} of {total} days",
+      history_meta_sup: "Sup:",
+      history_meta_workers: "workers",
+      section_clear_history: "Clear history",
+      clear_history_help: "Remove all archived days. The data is only on this device — use Export above for backups.",
+      btn_export_history: "📥 Export history as CSV",
+      btn_clear_history: "Clear all history",
+      confirm_clear_history: "Delete all {n} archived days? This cannot be undone.",
+      history_cleared: "Day history cleared.",
+      history_already_empty: "No history to clear."
     },
     es: {
       app_title: "Pago Diario - Calculadora de Pies",
@@ -2027,7 +2207,27 @@ document.addEventListener('DOMContentLoaded', function() {
       warn_rows_over: "⚠️ El bloque {block} sólo tiene {max} filas en el mapa. Anulación guardada.",
       warn_rows_over_total: "⚠️ Bloque {block}: {total} filas registradas hoy, pero el mapa muestra sólo {max}",
       summary_by_area: "POR ÁREA:",
-      summary_by_field: "POR CAMPO:"
+      summary_by_field: "POR CAMPO:",
+      btn_submit_day: "▶ Enviar Día",
+      submit_confirm: "¿Enviar este día?\n\n{workers} trabajadores · {total} unidades\n\nEsto enviará el resumen, guardará copia en el Historial, y limpiará para mañana.",
+      submit_nothing: "Nada que enviar — agregue trabajadores primero.",
+      submit_done: "Día enviado. Formulario limpiado para mañana.",
+      tab_history: "Historial",
+      section_day_history: "Historial de Días",
+      history_help: "Cada día enviado se guarda aquí con detalle completo. Busque por nombre, campo o bloque.",
+      ph_history_search: "Buscar nombre, campo o bloque…",
+      history_empty: "No hay días enviados todavía. Use Enviar Día en la pantalla principal.",
+      history_no_match: "Ningún día o trabajador coincide con esa búsqueda.",
+      history_count: "Mostrando {shown} de {total} días",
+      history_meta_sup: "Sup:",
+      history_meta_workers: "trabajadores",
+      section_clear_history: "Borrar historial",
+      clear_history_help: "Eliminar todos los días archivados. Los datos solo están en este dispositivo — use Exportar para respaldo.",
+      btn_export_history: "📥 Exportar historial como CSV",
+      btn_clear_history: "Borrar todo el historial",
+      confirm_clear_history: "¿Eliminar los {n} días archivados? Esto no se puede deshacer.",
+      history_cleared: "Historial borrado.",
+      history_already_empty: "No hay historial que borrar."
     }
   };
 
@@ -2264,8 +2464,162 @@ document.addEventListener('DOMContentLoaded', function() {
     $('resetEmpBtn').addEventListener('click', resetEmployees);
     $('resetFldBtn').addEventListener('click', resetFields);
     $('resetAllBtn').addEventListener('click', resetAll);
+
+    // Day History tab
+    $('historySearch').addEventListener('input', function() {
+      renderDayHistory($('historySearch').value);
+    });
+    $('clearHistoryBtn').addEventListener('click', clearAllHistory);
+    $('exportHistoryBtn').addEventListener('click', exportHistoryCSV);
+    // Re-render history whenever the user opens the tab
+    document.querySelectorAll('.setup-tab').forEach(function(b) {
+      b.addEventListener('click', function() {
+        if (b.dataset.tab === 'history') renderDayHistory($('historySearch').value);
+      });
+    });
   });
+
+  // ---- Day History renderers (hoisted so the IIFE outer code can see them) ----
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+  function highlight(text, query) {
+    if (!query) return escHtml(text);
+    var safe = escHtml(text);
+    var q = escHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return safe.replace(new RegExp('(' + q + ')', 'ig'), '<mark>$1</mark>');
+  }
+  function dayMatchesQuery(day, q) {
+    if (!q) return true;
+    var ql = q.toLowerCase();
+    if ((day.date||'').toLowerCase().indexOf(ql) >= 0) return true;
+    if ((day.supervisor||'').toLowerCase().indexOf(ql) >= 0) return true;
+    if ((day.farm||'').toLowerCase().indexOf(ql) >= 0) return true;
+    for (var i = 0; i < day.workers.length; i++) {
+      var w = day.workers[i];
+      if ((w.name||'').toLowerCase().indexOf(ql) >= 0) return true;
+      if ((w.empId||'').toLowerCase().indexOf(ql) >= 0) return true;
+      if ((w.idInfo||'').toLowerCase().indexOf(ql) >= 0) return true;
+      for (var j = 0; j < w.jobs.length; j++) {
+        var jb = w.jobs[j];
+        if (((jb.area||'')+' '+(jb.field||'')+' '+(jb.block||'')).toLowerCase().indexOf(ql) >= 0) return true;
+      }
+    }
+    return false;
+  }
+  function workerMatchesQuery(w, q) {
+    if (!q) return true;
+    var ql = q.toLowerCase();
+    if (((w.name||'')+' '+(w.empId||'')+' '+(w.idInfo||'')).toLowerCase().indexOf(ql) >= 0) return true;
+    for (var j = 0; j < w.jobs.length; j++) {
+      var jb = w.jobs[j];
+      if (((jb.area||'')+' '+(jb.field||'')+' '+(jb.block||'')).toLowerCase().indexOf(ql) >= 0) return true;
+    }
+    return false;
+  }
+  function renderDayHistory(query) {
+    var listEl = document.getElementById('historyList');
+    var countEl = document.getElementById('historyCount');
+    if (!listEl) return;
+    var arr = loadArchive();
+    if (!arr.length) {
+      listEl.innerHTML = '<div class="history-empty">' + t('history_empty') + '</div>';
+      countEl.textContent = '';
+      return;
+    }
+    var q = (query || '').trim();
+    var matching = arr.filter(function(d) { return dayMatchesQuery(d, q); });
+    countEl.textContent = t('history_count', { shown: matching.length, total: arr.length });
+    if (!matching.length) {
+      listEl.innerHTML = '<div class="history-empty">' + t('history_no_match') + '</div>';
+      return;
+    }
+    var html = matching.map(function(day, idx) {
+      var dayHeader =
+        '<div class="day-head" data-idx="' + idx + '">'
+        + '<div>'
+        + '<div class="date">' + escHtml(day.date) + ' &middot; ' + escHtml(day.farm) + '</div>'
+        + '<div class="meta">'
+        +   t('history_meta_sup') + ' <b>' + escHtml(day.supervisor || t('supervisor_na')) + '</b>'
+        +   ' &middot; ' + day.workers.length + ' ' + t('history_meta_workers')
+        +   ' &middot; <b>' + (day.grandTotal||0).toFixed(2) + '</b> ' + t('summary_units_word')
+        + '</div>'
+        + '</div>'
+        + '<span class="caret">&#9654;</span>'
+        + '</div>';
+      // Build worker rows (apply secondary search filter)
+      var filteredWorkers = q ? day.workers.filter(function(w) { return workerMatchesQuery(w, q); }) : day.workers;
+      var body = filteredWorkers.map(function(w) {
+        var jobsHtml = w.jobs.map(function(jb) {
+          var line = (jb.area ? highlight(jb.area, q) + ' ' : '')
+            + highlight(jb.field || '', q) + ' &middot; '
+            + highlight(jb.block || '', q) + ' &middot; '
+            + jb.ftRow + ' ft × ' + jb.rows + ' rows = <b>' + jb.units.toFixed(2) + '</b>';
+          return '<span class="job">' + line + '</span>';
+        }).join('');
+        return '<div class="day-worker">'
+          + '<span class="total">' + (w.total||0).toFixed(2) + '</span>'
+          + '<span class="name">' + highlight(w.name || t('unnamed'), q)
+          + (w.idInfo ? ' <span class="wid">(' + escHtml(w.idInfo) + ')</span>' : '') + '</span>'
+          + '<div class="jobs">' + jobsHtml + '</div>'
+          + '</div>';
+      }).join('');
+      return '<div class="day-entry' + (q ? ' open' : '') + '">' + dayHeader + '<div class="day-body">' + body + '</div></div>';
+    }).join('');
+    listEl.innerHTML = html;
+    // Attach expand/collapse handlers
+    listEl.querySelectorAll('.day-head').forEach(function(head) {
+      head.addEventListener('click', function() {
+        head.parentElement.classList.toggle('open');
+      });
+    });
+  }
+  function clearAllHistory() {
+    var arr = loadArchive();
+    if (!arr.length) { showToast(t('history_already_empty')); return; }
+    if (!confirm(t('confirm_clear_history', { n: arr.length }))) return;
+    try { localStorage.removeItem(ARCHIVE_KEY); } catch(e) {}
+    renderDayHistory(document.getElementById('historySearch').value);
+    showToast(t('history_cleared'));
+  }
+  function exportHistoryCSV() {
+    var arr = loadArchive();
+    if (!arr.length) { showToast(t('history_already_empty')); return; }
+    var rows = [['Date','Farm','Supervisor','Employee ID','Employee Name','Petition','Area','Field','Block','Ft/Row','Rows','Units']];
+    arr.forEach(function(day) {
+      day.workers.forEach(function(w) {
+        // Pull "H25700 | VD26" out of idInfo if present
+        var parts = (w.idInfo || '').split('|').map(function(s){ return s.trim(); });
+        var empId = w.empId || parts[0] || '';
+        var pet   = parts[1] || '';
+        w.jobs.forEach(function(jb) {
+          rows.push([day.date, day.farm, day.supervisor, empId, w.name, pet, jb.area, jb.field, jb.block, jb.ftRow, jb.rows, jb.units.toFixed(2)]);
+        });
+      });
+    });
+    var csv = rows.map(function(r) {
+      return r.map(function(c) {
+        var s = String(c == null ? '' : c);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var dstamp = new Date().toISOString().split('T')[0];
+    a.href = url; a.download = 'day_history_' + dstamp + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  }
 })();
+
+// Wire the Submit Day button (outside the setupModule IIFE because submitDay lives in top-level scope)
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('submitDayBtn');
+  if (btn) btn.addEventListener('click', function(e) { e.preventDefault(); submitDay(); });
+});
 
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
